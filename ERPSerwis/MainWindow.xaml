@@ -5,8 +5,90 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ERPSerwis"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Dziekanat" Height="450" Width="800">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="5*"/>
+            </Grid.RowDefinitions>
+
+            <ListBox x:Name="student_list" Margin="10" Grid.Row="1" ItemsSource="{Binding students}" SelectionChanged="Student_list_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="{Binding Index}"/>
+                            <Label Content="{Binding FirstName}" Grid.Column="1"/>
+                            <Label Content="{Binding LastName}" Grid.Column="2"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label Content="Lista studentów" Margin="10" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+
+        </Grid>
+
+
+        <Grid Margin="10" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Dodaj studenta" Margin="5" Click="AddNewStudent" />
+            <Button Content="Szukaj" Grid.Column="1" Margin="5" Click="SearchAction"/>
+            <TextBox x:Name="search_box" Grid.Column="2" Margin="5" TextWrapping="Wrap" VerticalContentAlignment="Center"/>
+        </Grid>
+
+
+        <Grid Grid.Column="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="5*"/>
+            </Grid.RowDefinitions>
+            <ListBox Margin="0" Grid.Row="4" x:Name="student_Rates" Grid.ColumnSpan="2"/>
+            <Label Content="Numer indeksu:" Margin="5"/>
+            <Label Content="Imię i nazwisko:" Margin="5" Grid.Row="1"/>
+            <Label Content="Data urodzenia:" Margin="5" Grid.Row="2"/>
+            <Label Content="Oceny:" Margin="5" Grid.Row="3" Grid.ColumnSpan="2" HorizontalContentAlignment="Center"/>
+            <Label x:Name="tb_index" Grid.Column="1" Margin="5"/>
+            <Label x:Name="tb_name" Grid.Column="1" Margin="5" Grid.Row="1"/>
+            <Label x:Name="tb_date" Grid.Column="1" Margin="5" Grid.Row="2"/>
+        </Grid>
+        <Grid Grid.Column="1" Margin="10" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Zapisz" Margin="5"/>
+            <Button Content="Dodaj ocenę" Margin="5" Grid.Column="1"/>
+            <Button Content="Usuń studenta" Margin="5" Grid.Column="2"/>
+        </Grid>
+
+
+
+
     </Grid>
 </Window>
