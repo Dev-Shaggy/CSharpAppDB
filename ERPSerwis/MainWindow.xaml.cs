@@ -17,24 +17,6 @@ using System.Windows.Shapes;
 
 
 
-/*
- * TODO:
- * 
- * przycisk do edycji studenta
- * wyświetlanie ocen studenta
- * usuwanie studenta
- * dodawanie ocen
- * szukanie po dacie urodzenia
- * 
- * 
- * 
- * Zrobione:
- * wyszukiwanie po imieniu, nazwisku i numerze indeksu
- * dodawanie studenta
- * wyswietlanie listy studentow
- * łaczenie z bazą danych
- * wyswietlanie danych studenta po kliknięciu na studenta
- */
 
 namespace ERPSerwis
 {
@@ -44,6 +26,7 @@ namespace ERPSerwis
 	public partial class MainWindow : Window
 	{
 		public List<Student> students;
+		private Student currStudent;
 
 		public MainWindow()
 		{
@@ -56,21 +39,13 @@ namespace ERPSerwis
 					MessageBox.Show("Nie udało się pobrać danych. Brak połączenia z bazą.");
 				}
 
+
 				students = db.Students.ToList();
 
 				student_list.ItemsSource = students;
 
-		//var student = new Student() { FirstName = "first name", LastName = "last name", Index = "123456", BirthDate = new DateTime(2000,01,01) };
-		//var subject = new Subject() { Name = "subject"};
-		//student.Subjects.Add(subject);
-		//subject.Students.Add(student);
-
-		//var rate = new Rate() { Student = student, Subject = subject ,Value = 5.0};
-
-		//db.Rates.Add(rate);
-
-		//db.SaveChanges();
-		}
+				
+			}
 }
 
 		private void AddNewStudent(object sender, RoutedEventArgs e)
@@ -82,15 +57,17 @@ namespace ERPSerwis
 					MessageBox.Show("Nie udało się pobrać danych. Brak połączenia z bazą.");
 				}
 
-				AddStudentWindow window = new AddStudentWindow(db.Subjects.ToList());
-				//AddStudentWindow window = new AddStudentWindow(db.Students.Find(1));
-				if (window.ShowDialog() == true)
-				{
-					db.Students.Add(window.getStudent());
-					db.SaveChanges();
-				}
+				Student s = new Student();
 
-				var students = db.Students.ToList();
+				s.Index = tb_index.Text;
+				s.LastName = tb_lname.Text;
+				s.FirstName = tb_fname.Text;
+				s.BirthDate = dp_birthDate.SelectedDate.Value;
+
+				db.Students.Add(s);
+				db.SaveChanges();
+
+				students = db.Students.ToList();
 
 				student_list.ItemsSource = students;
 			}
@@ -105,7 +82,7 @@ namespace ERPSerwis
 					MessageBox.Show("Nie udało się pobrać danych. Brak połączenia z bazą.");
 				}
 				
-				if (search_box.Text.Length >0 )
+				if (search_box.Text.Length > 0 )
 				{
 					students = db.Students.Where(x => x.FirstName.ToLower().Contains(search_box.Text.ToLower())
 					||  x.LastName.ToLower().Contains(search_box.Text.ToLower())
@@ -125,17 +102,125 @@ namespace ERPSerwis
 		{
 			try
 			{
-				Student s = students[student_list.SelectedIndex];
+				currStudent = students[student_list.SelectedIndex];
 
-				tb_date.Content = s.BirthDate.ToString();
-				tb_index.Content = s.Index;
-				tb_name.Content = s.LastName + " " + s.FirstName;
+				//Informacje o studencie
+				dp_birthDate.SelectedDate = currStudent.BirthDate;
+				tb_index.Text = currStudent.Index;
+				tb_fname.Text = currStudent.FirstName;
+				tb_lname.Text = currStudent.LastName;
+
+
+				//Oceny studenta
+				using (var db = new DBModel())
+				{
+					var s_subjects = db.Subjects.ToList();
+
+					var s_rates = db.Rates.Where(x => x.Student.Id == currStudent.Id).ToList();
+
+
+					List<SubjectRates> list = new List<SubjectRates>() ;
+
+
+					foreach(var sub in s_rates)
+					{
+						list.Add(new SubjectRates() { Subject_Name = sub.Subject.Name, Subject_Rates = sub.Value});
+					}
+
+					student_Rates.ItemsSource = list;
+				}
 
 			}catch
 			{
 			
 			}
 			
+		}
+
+		private void DeleteStudent(object sender, RoutedEventArgs e)
+		{
+			using (var db = new DBModel())
+			{
+				foreach(var rate in db.Rates.Where(x=> x.Student.Id == currStudent.Id).ToList())
+				{
+					db.Rates.Remove(rate);
+				}
+
+				db.Students.Remove(db.Students.Find(currStudent.Id));
+				db.SaveChanges();
+				students = db.Students.ToList();
+				student_list.ItemsSource = students;
+			}
+		}
+
+		private void SaveStudent(object sender, RoutedEventArgs e)
+		{
+			using (var db = new DBModel())
+			{
+
+				currStudent.Index = tb_index.Text;
+				currStudent.LastName = tb_lname.Text;
+				currStudent.FirstName = tb_fname.Text;
+				currStudent.BirthDate = dp_birthDate.SelectedDate.Value;
+
+				db.Students.Find(currStudent.Id).Index = currStudent.Index;
+				db.Students.Find(currStudent.Id).LastName = currStudent.LastName;
+				db.Students.Find(currStudent.Id).FirstName = currStudent.FirstName;
+				db.Students.Find(currStudent.Id).BirthDate = currStudent.BirthDate;
+
+
+
+				db.SaveChanges();
+				students = db.Students.ToList();
+				student_list.ItemsSource = students;
+			}
+		}
+
+		private void AddRate(object sender, RoutedEventArgs e)
+		{
+			using (var db = new DBModel())
+			{
+				var window = new AddRate(db.Subjects.ToList(),currStudent);
+
+				if (window.ShowDialog() == true)
+				{
+					Rate rate = window.getRate();
+					Console.WriteLine();
+					db.Students.Find(currStudent.Id).Subjects.Add(rate.Subject);
+					db.Rates.Add(new Rate() { Subject=rate.Subject,Student=db.Students.Find(currStudent.Id),Value=rate.Value });
+					db.SaveChanges();
+				}
+
+
+				var s_rates = db.Rates.Where(x => x.Student.Id == currStudent.Id).ToList();
+
+
+				List<SubjectRates> list = new List<SubjectRates>();
+
+
+				foreach (var sub in s_rates)
+				{
+					list.Add(new SubjectRates() { Subject_Name = sub.Subject.Name, Subject_Rates = sub.Value });
+				}
+
+				student_Rates.ItemsSource = list;
+
+
+			}
+		}
+
+		private void CreateSubject(object sender, RoutedEventArgs e)
+		{
+			var window = new AddSubjectWindow();
+
+			if (window.ShowDialog() == true)
+			{
+				using (var db = new DBModel())
+				{
+					db.Subjects.Add(new Subject() { Name=window.getName()});
+					db.SaveChanges();
+				}
+			}
 		}
 	}
 }
