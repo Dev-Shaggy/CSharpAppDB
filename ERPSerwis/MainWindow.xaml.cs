@@ -84,9 +84,17 @@ namespace ERPSerwis
 				
 				if (search_box.Text.Length > 0 )
 				{
+					DateTime dt;
+					if(DateTime.TryParse(search_box.Text, out dt))
+					{
+						dt = DateTime.Parse(search_box.Text);
+					}
 					students = db.Students.Where(x => x.FirstName.ToLower().Contains(search_box.Text.ToLower())
-					||  x.LastName.ToLower().Contains(search_box.Text.ToLower())
-					||  x.Index.ToLower().Contains(search_box.Text.ToLower())
+					|| x.LastName.ToLower().Contains(search_box.Text.ToLower())
+					|| x.Index.ToLower().Contains(search_box.Text.ToLower())
+					|| (x.BirthDate.Year.Equals(dt.Year)
+					&& x.BirthDate.Year.Equals(dt.Year)
+					&& x.BirthDate.Day.Equals(dt.Day))
 					).ToList();
 				}
 				else
